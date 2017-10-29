@@ -1,0 +1,37 @@
+-- module Main where
+
+import qualified Control.Category as Cat
+import Control.Arrow
+import Data.Char
+
+(<>) :: Process b c -> Process a b -> Process a c
+(<>) = (Cat..)
+
+pid :: Process a a
+pid = Cat.id
+
+data Process a b = Process {
+  func :: ((a, Int) -> (b, Int))
+}
+
+instance Arrow Process where
+  arr f = Process $ (\(a, acc) -> (f a, acc + 1))
+  first (Process func) = Process $ (\((a, b), acc) -> let (a', acc) = func (a, acc) in ((a', b), acc))
+  second (Process func) = Process $ (\((a, b), acc) -> let (b', acc) = func (b, acc) in ((a, b'), acc))
+
+instance Cat.Category Process where
+  id = arr id
+  (Process f1) . (Process f2) = Process $ f1 . f2
+
+runProcess :: Process a b -> a -> (b, Int)
+runProcess p a = func p (a, 0)
+
+scream :: Process String String
+scream = arr $ (\xs -> (map toUpper xs) ++ "!")
+
+greet :: Process String String
+greet = arr $ (\xs -> "Hello, " ++ xs)
+
+main :: IO ()
+main = print $ [runProcess (greet <> scream) "Haskell"
+               , runProcess (foldr (<>) pid (replicate 10 pid)) "Hey"] 
