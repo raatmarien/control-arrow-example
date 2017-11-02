@@ -18,7 +18,7 @@ pid = Cat.id
 -- get the answer.
 -- A ProcessCounter from a to b is just a function with a hidden
 -- counter.
-data ProcessCounter a b = ProcessCounter {
+newtype ProcessCounter a b = ProcessCounter {
   func :: (a, Int) -> (b, Int)
 }
 
