@@ -1,17 +1,10 @@
 -- module Main where
 
-import qualified Control.Category as Cat
+import Prelude hiding ((.), id) -- we take these from Control.Category
+
+import Control.Category
 import Control.Arrow
 import Data.Char
-
--- Writing Cat.. to compose Categories is a bit tedious, so lets use
--- <> for that (notice that it looks like the . operator a bit)
-(<>) :: ProcessCounter b c -> ProcessCounter a b -> ProcessCounter a c
-(<>) = (Cat..)
-
--- pid is just id for our ProcessCounter
-pid :: ProcessCounter a a
-pid = Cat.id
 
 -- Lets call our custom Arrow ProcessCounter, because it will count
 -- the amount of times a process is applied to the first argument to
@@ -35,7 +28,7 @@ instance Arrow ProcessCounter where
 
 -- Our ProcessCounter also needs to be an instance of Category, in
 -- order to be an instance of Arrow.
-instance Cat.Category ProcessCounter where
+instance Category ProcessCounter where
   id = arr id
   (ProcessCounter f1) . (ProcessCounter f2) = ProcessCounter $ f1 . f2
 
@@ -60,10 +53,10 @@ greet = arr ("Hello, " ++)
 
 -- Screaming "Haskell" and then greeting it, how many processes have
 -- been applied?
-applyingProcesses = printProcess (greet <> scream) "Haskell"
+applyingProcesses = printProcess (greet . scream) "Haskell"
 
 -- Applying pid 11 times, so we should receive a count of 11
-applyingFromAList = printProcess (foldr (<>) pid (replicate 10 pid)) "Hey"
+applyingFromAList = printProcess (foldr (.) id (replicate 10 id)) "Hey"
 
 -- But because our ProcessCounter type is an Arrow, we can do a lot of
 -- other things!
